@@ -15,6 +15,7 @@ Object.keys(defaultColors).forEach(k=>{
 if(!state.referencePanels)state.referencePanels={};
 let history=[];
 let classicReference=null;
+let responsiveLayoutBound=false;
 
 const paths={
   classic:{
@@ -55,8 +56,18 @@ function init(){
   document.getElementById('swatches').innerHTML=palette.map(c=>`<button class="swatch" style="background:${c}" data-color="${c}" aria-label="Use ${c}"></button>`).join('');
   document.getElementById('patternGrid').innerHTML=['solid','stripe','check','wave'].map((p,i)=>`<button class="pattern ${state.pattern===p?'active':''}" data-pattern="${p}" aria-label="${p} pattern" title="${p}"></button>`).join('');
   document.getElementById('presetList').innerHTML=presets.map((p,i)=>`<button class="preset" data-preset="${i}" aria-label="Apply preset ${i+1}">${p.slice(0,5).map(c=>`<i style="background:${c}"></i>`).join('')}</button>`).join('');
-  bind();render();syncInputs();
+  bind();render();syncInputs();setupResponsiveLayout();
   if(!classicReference) loadClassicReference();
+}
+function setupResponsiveLayout(){
+  if(responsiveLayoutBound)return;
+  responsiveLayoutBound=true;
+  const media=window.matchMedia('(max-width: 600px)');
+  const arrange=()=>{
+    const presets=document.querySelector('.preset-bar');
+    (media.matches?document.querySelector('.controls'):document.querySelector('.stage-wrap')).append(presets);
+  };
+  arrange();media.addEventListener('change',arrange);
 }
 function updateZonePicker(){
   const picker=document.getElementById('zonePicker');

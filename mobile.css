@@ -10,7 +10,13 @@
   .topbar .button-dark span { display: none; }
   .brand { font-size: 14px; }
   .app-shell, .workspace { width: 100%; }
-  .controls { min-width: 0; }
+  .controls { min-width: 0; display: flex; flex-direction: column; }
+  .color-section { order: 1; }
+  .pattern-section { order: 2; }
+  .zone-section { order: 3; }
+  .model-section { order: 4; }
+  .utility-row { order: 5; }
+  .preset-bar { order: 6; }
   .control-section { padding: 20px 16px; }
   .workspace { min-height: 0; }
   .workspace { display: flex; flex-direction: column; }
