@@ -41,3 +41,22 @@
   font-size: 8px;
   line-height: 1.25;
 }
+
+.classic-reference .reference-panel {
+  stroke: #111;
+  stroke-width: 1.35px;
+  vector-effect: non-scaling-stroke;
+}
+
+.classic-reference .reference-panel:hover {
+  stroke-width: 2.5px;
+}
+
+.classic-reference .reference-panel.selected {
+  stroke: #f4ff58;
+  stroke-width: 3px;
+}
+
+.left-label { left: 22%; }
+.center-label { left: 50%; transform: translateX(-50%); }
+.right-label { right: 22%; }

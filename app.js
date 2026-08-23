@@ -13,6 +13,7 @@ Object.keys(defaultColors).forEach(k=>{
   if(!state.zones[k].color2) state.zones[k].color2='#111111';
 });
 let history=[];
+let classicReference=null;
 
 const paths={
   classic:{
@@ -54,16 +55,62 @@ function init(){
   document.getElementById('patternGrid').innerHTML=['solid','stripe','check','wave'].map((p,i)=>`<button class="pattern ${state.pattern===p?'active':''}" data-pattern="${p}" aria-label="${p} pattern" title="${p}"></button>`).join('');
   document.getElementById('presetList').innerHTML=presets.map((p,i)=>`<button class="preset" data-preset="${i}" aria-label="Apply preset ${i+1}">${p.slice(0,5).map(c=>`<i style="background:${c}"></i>`).join('')}</button>`).join('');
   bind();render();syncInputs();
+  if(!classicReference) loadClassicReference();
+}
+async function loadClassicReference(){
+  try{
+    const source=await fetch('assets/asym-reference.svg').then(r=>{if(!r.ok)throw new Error(`SVG ${r.status}`);return r.text()});
+    const doc=new DOMParser().parseFromString(source,'image/svg+xml');
+    classicReference=doc.querySelector('svg > g')?.outerHTML||null;
+    if(state.model==='classic')render();
+  }catch(error){console.error('Unable to load supplied wetsuit reference',error)}
 }
 function patternDefs(){return `<defs><pattern id="stripe" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="9" height="18" fill="var(--c)"/><rect x="9" width="9" height="18" fill="var(--c2)"/></pattern><pattern id="check" width="24" height="24" patternUnits="userSpaceOnUse"><rect width="24" height="24" fill="var(--c)"/><path d="M0 0h12v12H0zM12 12h12v12H12z" fill="var(--c2)"/></pattern><pattern id="wave" width="28" height="20" patternUnits="userSpaceOnUse"><rect width="28" height="20" fill="var(--c)"/><path d="M-7 10 Q0 0 7 10 T21 10 T35 10" fill="none" stroke="var(--c2)" stroke-width="5"/></pattern></defs>`}
+function zonePatternInstances(){return Object.entries(state.zones).map(([zone,cfg])=>cfg.pattern==='solid'?'':`<pattern id="${cfg.pattern}-${zone}" href="#${cfg.pattern}" style="--c:${cfg.color};--c2:${cfg.color2}"/>`).join('')}
 function render(){
   const svg=document.getElementById('suitSvg');let out=patternDefs();
+  document.getElementById('stage').classList.toggle('three-view',state.model==='classic');
+  document.querySelector('.left-label').textContent=state.model==='classic'?'SIDE':'FRONT';
+  document.querySelector('.center-label').hidden=state.model!=='classic';
+  document.querySelector('.right-label').textContent=state.model==='classic'?'SIDE':'BACK';
+  if(state.model==='classic'&&classicReference){
+    svg.setAttribute('viewBox','0 0 2481 3508');
+    svg.innerHTML=out.replace('</defs>',zonePatternInstances()+'</defs>')+`<g class="classic-reference">${classicReference}</g>`;
+    decorateClassicReference(svg);
+    document.getElementById('styleCode').textContent='WL—01';
+    document.querySelectorAll('.zone-dot').forEach((d,i)=>d.style.background=state.zones[Object.keys(zoneNames)[i]].color);
+    save();
+    return;
+  }
+  svg.setAttribute('viewBox','0 0 820 720');
   for(const view of ['front','back']) for(const [zone,d] of Object.entries(paths[state.model][view])){const cfg=state.zones[zone];const fill=cfg.pattern==='solid'?cfg.color:`url(#${cfg.pattern}-${zone})`;const transform=state.model==='classic'?(view==='front'?'translate(52 0) scale(.8 1)':'translate(112 0) scale(.8 1)'):'';if(cfg.pattern!=='solid')out+=`<pattern id="${cfg.pattern}-${zone}" href="#${cfg.pattern}" style="--c:${cfg.color};--c2:${cfg.color2}"/>`;out+=`<path class="suit-panel ${state.active===zone?'selected':''}" data-zone="${zone}" d="${d}" fill="${fill}" transform="${transform}"/>`;}
   if(state.model==='classic') out+=`<path class="reference-seams" d="M232 84 Q260 96 288 84 M253 142 L305 165 M331 119 L317 169 M188 647 L224 647 M296 647 L332 647" transform="translate(52 0) scale(.8 1)"/><path class="reference-seams" d="M532 84 Q560 96 588 84 M560 145 L618 169 M628 121 L618 169 M488 647 L524 647 M596 647 L632 647" transform="translate(112 0) scale(.8 1)"/><path class="chest-mark" d="M257 181h2 M265 183h2" transform="translate(52 0) scale(.8 1)"/><path class="chest-mark" d="M557 181h2 M565 183h2" transform="translate(112 0) scale(.8 1)"/>`;
   if(state.model==='flow') out+=`<path class="front-zip" d="M260 143 L260 355"/><path class="back-leg-seam" d="M560 398 L560 630"/><path class="zip-pull" d="M254 157h12v18h-12z"/>`;
   svg.innerHTML=out;document.getElementById('styleCode').textContent=`WL—0${models.findIndex(m=>m.id===state.model)+1}`;
   document.querySelectorAll('.zone-dot').forEach((d,i)=>d.style.background=state.zones[Object.keys(zoneNames)[i]].color);
   document.querySelectorAll('.suit-panel').forEach(p=>p.onclick=()=>selectZone(p.dataset.zone));save();
+}
+function classifyReferencePanel(path){
+  const b=path.getBBox(),x=b.x+b.width/2,y=b.y+b.height/2;
+  if(y<115)return'accent';
+  if(y<205)return b.width>115?'chest':'shoulders';
+  if(y<360&&(x<215||x>705||b.width<55))return'arms';
+  if(y<360)return'chest';
+  if(y<690&&(x<120||x>815||b.width<45))return'sides';
+  if(y<675)return'body';
+  if(y<815&&b.height<175)return'knees';
+  return'legs';
+}
+function decorateClassicReference(svg){
+  svg.querySelectorAll('.classic-reference path').forEach(path=>{
+    const zone=classifyReferencePanel(path),cfg=state.zones[zone];
+    path.classList.add('suit-panel','reference-panel');
+    if(state.active===zone)path.classList.add('selected');
+    path.dataset.zone=zone;
+    const fill=cfg.pattern==='solid'?cfg.color:`url(#${cfg.pattern}-${zone})`;
+    path.style.setProperty('fill',fill,'important');
+    path.onclick=()=>selectZone(zone);
+  });
 }
 function snapshot(){history.push(JSON.stringify(state));if(history.length>30)history.shift()}
 function selectZone(z){state.active=state.active===z?null:z;state.pattern=state.active?state.zones[state.active].pattern:null;syncInputs();render()}
