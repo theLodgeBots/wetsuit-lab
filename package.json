@@ -4,6 +4,6 @@
   "private": true,
   "scripts": {
     "dev": "npx serve .",
-    "build": "mkdir -p public/assets && cp index.html app.js styles.css mobile.css reference-updates.css public/ && cp assets/*.svg public/assets/ && cp -R shark-vision public/"
+    "build": "mkdir -p public/assets && cp index.html app.js styles.css mobile.css reference-updates.css shark-preview.css public/ && cp assets/*.svg public/assets/ && cp -R shark-vision public/"
   }
 }

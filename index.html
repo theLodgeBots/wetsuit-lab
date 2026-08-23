@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="mobile.css" />
   <link rel="stylesheet" href="reference-updates.css" />
+  <link rel="stylesheet" href="shark-preview.css" />
 </head>
 <body>
   <header class="topbar">
@@ -59,7 +60,7 @@
       </aside>
 
       <section class="stage-wrap">
-        <div class="stage-meta"><span>LIVE PREVIEW</span><span id="styleCode">WL—01</span></div>
+        <div class="stage-meta"><span>LIVE PREVIEW</span><button class="shark-view-button" id="sharkViewBtn">◉ SHARK VIEW</button><span id="styleCode">WL—01</span></div>
         <div class="stage" id="stage">
           <div class="view-label left-label">SIDE</div><div class="view-label center-label">FRONT</div><div class="view-label right-label">SIDE</div>
           <svg id="suitSvg" viewBox="0 0 820 720" role="img" aria-label="Interactive front and back wetsuit design preview"></svg>
@@ -69,6 +70,18 @@
       </section>
     </section>
   </main>
+  <dialog id="sharkDialog" class="shark-dialog" aria-labelledby="sharkDialogTitle">
+    <div class="shark-dialog-head"><div><span>PERCEPTION SIMULATOR / BETA</span><h2 id="sharkDialogTitle">SHARK VIEW</h2></div><button id="closeSharkView" aria-label="Close shark view">×</button></div>
+    <div class="shark-sim-grid">
+      <div class="shark-canvas" id="sharkCanvas"><div class="shark-water-label" id="sharkWaterLabel">CLEAR BLUE / 5 M / 8 M VIEW</div><div id="sharkSvgMount"></div></div>
+      <aside class="shark-controls">
+        <label>WATER TYPE<select id="sharkWater"><option value="clear">Clear blue ocean</option><option value="coastal">Green coastal</option><option value="turbid">Turbid / estuary</option><option value="surf">Surf / backlit</option><option value="low">Low light / depth</option></select></label>
+        <label>DEPTH <output id="depthOutput">5 M</output><input id="sharkDepth" type="range" min="0" max="30" value="5" step="1"></label>
+        <label>VIEWING DISTANCE <output id="distanceOutput">8 M</output><input id="sharkDistance" type="range" min="1" max="25" value="8" step="1"></label>
+        <div class="shark-legend"><b>WHAT THIS MODELS</b><p>Approximate shark-weighted luminance, water-dependent contrast loss, and reduced spatial detail with distance.</p><b>WHAT IT DOES NOT</b><p>It cannot predict behavior or safety. Accurate simulation requires wet material spectra, local underwater light measurements, species, and viewing geometry.</p></div>
+      </aside>
+    </div>
+  </dialog>
   <footer><span>BUILT FOR BOLD WATER</span><span>WETSUIT LAB © 2026</span></footer>
   <script src="app.js"></script>
 </body>

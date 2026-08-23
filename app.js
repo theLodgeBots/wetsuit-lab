@@ -19,6 +19,7 @@ let history=[];
 const referenceAssets={classic:'asym-reference.svg',apex:'pattern-2.svg',flow:'pattern-3.svg',spring:'pattern-4-spring-suit.svg'};
 const references={};
 let responsiveLayoutBound=false;
+let sharkPreviewBound=false;
 
 const paths={
   classic:{
@@ -59,7 +60,7 @@ function init(){
   document.getElementById('swatches').innerHTML=palette.map(c=>`<button class="swatch" style="background:${c}" data-color="${c}" aria-label="Use ${c}"></button>`).join('');
   document.getElementById('patternGrid').innerHTML=['solid','stripe','check','wave'].map((p,i)=>`<button class="pattern ${state.pattern===p?'active':''}" data-pattern="${p}" aria-label="${p} pattern" title="${p}"></button>`).join('');
   document.getElementById('presetList').innerHTML=presets.map((p,i)=>`<button class="preset" data-preset="${i}" aria-label="Apply preset ${i+1}">${p.slice(0,5).map(c=>`<i style="background:${c}"></i>`).join('')}</button>`).join('');
-  bind();render();syncInputs();setupResponsiveLayout();
+  bind();render();syncInputs();setupResponsiveLayout();setupSharkView();
   loadReferences();
 }
 function setupResponsiveLayout(){
@@ -178,7 +179,7 @@ function syncInputs(){
   document.getElementById('secondaryColorControls').classList.toggle('is-disabled',!cfg||cfg.pattern==='solid');
   refreshSelection();
 }
-function save(){localStorage.setItem('wetsuit-lab-state',JSON.stringify(state))}
+function save(){localStorage.setItem('wetsuit-lab-state',JSON.stringify(state));if(document.getElementById('sharkDialog')?.open)updateSharkPreview()}
 function bind(){
   document.querySelectorAll('[data-model]').forEach(b=>b.onclick=()=>{snapshot();state.model=b.dataset.model;state.active=null;state.pattern=null;syncInputs();render()});
   document.querySelectorAll('.zone-button').forEach(b=>b.onclick=()=>selectZone(b.dataset.zone));
@@ -193,6 +194,37 @@ function bind(){
   document.getElementById('randomBtn').onclick=()=>{snapshot();const targets=Object.entries(state.referencePanels).filter(([k])=>k.startsWith(`${state.model}-`)).map(([,v])=>v);targets.forEach(cfg=>{cfg.color=palette[Math.floor(Math.random()*palette.length)];cfg.color2=palette[Math.floor(Math.random()*palette.length)];cfg.pattern=['solid','solid','stripe','check','wave'][Math.floor(Math.random()*5)]});syncInputs();render()};
   document.getElementById('resetBtn').onclick=()=>{snapshot();Object.keys(defaultColors).forEach(z=>state.zones[z]={color:defaultColors[z],color2:'#111111',pattern:'solid'});state.referencePanels={};state.model='classic';state.active=null;state.pattern=null;init()};
   document.getElementById('exportBtn').onclick=exportPng;
+}
+function setupSharkView(){
+  if(sharkPreviewBound)return;
+  sharkPreviewBound=true;
+  const dialog=document.getElementById('sharkDialog');
+  document.getElementById('sharkViewBtn').onclick=()=>{dialog.showModal();updateSharkPreview()};
+  document.getElementById('closeSharkView').onclick=()=>dialog.close();
+  dialog.onclick=e=>{if(e.target===dialog)dialog.close()};
+  ['sharkWater','sharkDepth','sharkDistance'].forEach(id=>document.getElementById(id).oninput=updateSharkPreview);
+}
+function updateSharkPreview(){
+  const source=document.getElementById('suitSvg'),mount=document.getElementById('sharkSvgMount');
+  if(!source||!mount)return;
+  const water=document.getElementById('sharkWater').value;
+  const depth=+document.getElementById('sharkDepth').value;
+  const distance=+document.getElementById('sharkDistance').value;
+  const profiles={clear:[.14,.65,.21],coastal:[.21,.69,.10],turbid:[.31,.62,.07],surf:[.20,.68,.12],low:[.10,.60,.30]};
+  const names={clear:'CLEAR BLUE',coastal:'GREEN COASTAL',turbid:'TURBID / ESTUARY',surf:'SURF / BACKLIT',low:'LOW LIGHT'};
+  const w=profiles[water],slope=Math.max(.42,1.12-depth*.012-distance*.012),intercept=(1-slope)/2;
+  const viewWidth=source.viewBox.baseVal.width||820,blur=(distance-1)*viewWidth/2500*.75+depth*viewWidth/2500*.08;
+  const clone=source.cloneNode(true);clone.removeAttribute('id');clone.querySelectorAll('.selected').forEach(el=>el.classList.remove('selected'));
+  const ns='http://www.w3.org/2000/svg',defs=clone.querySelector('defs')||clone.insertBefore(document.createElementNS(ns,'defs'),clone.firstChild);
+  const filter=document.createElementNS(ns,'filter');filter.id='shark-perception-filter';filter.setAttribute('x','-10%');filter.setAttribute('y','-10%');filter.setAttribute('width','120%');filter.setAttribute('height','120%');
+  filter.innerHTML=`<feColorMatrix type="matrix" values="${w[0]} ${w[1]} ${w[2]} 0 0 ${w[0]} ${w[1]} ${w[2]} 0 0 ${w[0]} ${w[1]} ${w[2]} 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="linear" slope="${slope}" intercept="${intercept}"/><feFuncG type="linear" slope="${slope}" intercept="${intercept}"/><feFuncB type="linear" slope="${slope}" intercept="${intercept}"/></feComponentTransfer><feGaussianBlur stdDeviation="${blur.toFixed(2)}"/>`;
+  defs.append(filter);
+  const group=document.createElementNS(ns,'g');group.setAttribute('filter','url(#shark-perception-filter)');
+  [...clone.children].filter(el=>el.tagName.toLowerCase()!=='defs').forEach(el=>group.append(el));clone.append(group);
+  mount.replaceChildren(clone);
+  document.getElementById('depthOutput').value=`${depth} M`;document.getElementById('distanceOutput').value=`${distance} M`;
+  document.getElementById('sharkWaterLabel').textContent=`${names[water]} / ${depth} M / ${distance} M VIEW`;
+  const canvas=document.getElementById('sharkCanvas');canvas.dataset.water=water;canvas.style.setProperty('--haze',Math.min(.48,.04+depth*.009+distance*.008).toFixed(2));
 }
 function exportPng(){const svg=document.getElementById('suitSvg');const clone=svg.cloneNode(true);clone.setAttribute('width','1640');clone.setAttribute('height','1440');const data=new XMLSerializer().serializeToString(clone);const blob=new Blob([data],{type:'image/svg+xml'});const url=URL.createObjectURL(blob);const img=new Image();img.onload=()=>{const canvas=document.createElement('canvas');canvas.width=1640;canvas.height=1440;const ctx=canvas.getContext('2d');ctx.fillStyle='#f8f7f1';ctx.fillRect(0,0,1640,1440);ctx.drawImage(img,0,0);URL.revokeObjectURL(url);const a=document.createElement('a');a.download=`wetsuit-lab-${state.model}.png`;a.href=canvas.toDataURL('image/png');a.click()};img.src=url}
 init();
