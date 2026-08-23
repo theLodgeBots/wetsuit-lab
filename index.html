@@ -39,8 +39,13 @@
           <div class="zone-picker" id="zonePicker"></div>
         </div>
         <div class="control-section">
-          <div class="section-heading"><span>COLOR</span><span>03</span></div>
-          <div class="color-row"><input type="color" id="colorInput" value="#f4ff58"><input type="text" id="hexInput" value="#F4FF58" maxlength="7"></div>
+          <div class="section-heading"><span>COLORS</span><span>03</span></div>
+          <label class="color-label" for="colorInput">PRIMARY</label>
+          <div class="color-row"><input type="color" id="colorInput" value="#f4ff58"><input type="text" id="hexInput" value="#F4FF58" maxlength="7" aria-label="Primary color hex value"></div>
+          <div id="secondaryColorControls">
+            <label class="color-label" for="color2Input">PATTERN SECONDARY</label>
+            <div class="color-row"><input type="color" id="color2Input" value="#111111"><input type="text" id="hex2Input" value="#111111" maxlength="7" aria-label="Pattern secondary color hex value"></div>
+          </div>
           <div class="swatches" id="swatches"></div>
         </div>
         <div class="control-section">

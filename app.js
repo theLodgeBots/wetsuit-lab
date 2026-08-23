@@ -7,7 +7,11 @@ const models=[
 ];
 const presets=[['#111111','#f4ff58','#f4ff58','#111111','#111111','#111111','#111111','#f4ff58'],['#23364d','#ff5a36','#f1ead7','#23364d','#13c9c3','#23364d','#111111','#ff5a36'],['#7c5cff','#ff4f9a','#ffb800','#7c5cff','#ff4f9a','#111111','#111111','#f4ff58'],['#f1ead7','#111111','#f1ead7','#111111','#111111','#f1ead7','#111111','#9a174c'],['#13c9c3','#1473e6','#b8ffdf','#23364d','#1473e6','#23364d','#111111','#f4ff58']];
 const defaultColors={body:'#111111',chest:'#f4ff58',shoulders:'#111111',arms:'#111111',sides:'#111111',legs:'#111111',knees:'#1d1e1c',accent:'#f4ff58'};
-let state=JSON.parse(localStorage.getItem('wetsuit-lab-state'))||{model:'classic',active:'chest',pattern:'solid',zones:Object.fromEntries(Object.keys(defaultColors).map(k=>[k,{color:defaultColors[k],pattern:'solid'}]))};
+let state=JSON.parse(localStorage.getItem('wetsuit-lab-state'))||{model:'classic',active:'chest',pattern:'solid',zones:Object.fromEntries(Object.keys(defaultColors).map(k=>[k,{color:defaultColors[k],color2:'#111111',pattern:'solid'}]))};
+Object.keys(defaultColors).forEach(k=>{
+  if(!state.zones[k]) state.zones[k]={color:defaultColors[k],color2:'#111111',pattern:'solid'};
+  if(!state.zones[k].color2) state.zones[k].color2='#111111';
+});
 let history=[];
 
 const paths={
@@ -51,10 +55,10 @@ function init(){
   document.getElementById('presetList').innerHTML=presets.map((p,i)=>`<button class="preset" data-preset="${i}" aria-label="Apply preset ${i+1}">${p.slice(0,5).map(c=>`<i style="background:${c}"></i>`).join('')}</button>`).join('');
   bind();render();syncInputs();
 }
-function patternDefs(){return `<defs><pattern id="stripe" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="9" height="18" fill="var(--c)"/><rect x="9" width="9" height="18" fill="#111"/></pattern><pattern id="check" width="24" height="24" patternUnits="userSpaceOnUse"><rect width="24" height="24" fill="var(--c)"/><path d="M0 0h12v12H0zM12 12h12v12H12z" fill="#111"/></pattern><pattern id="wave" width="28" height="20" patternUnits="userSpaceOnUse"><rect width="28" height="20" fill="var(--c)"/><path d="M-7 10 Q0 0 7 10 T21 10 T35 10" fill="none" stroke="#111" stroke-width="5"/></pattern></defs>`}
+function patternDefs(){return `<defs><pattern id="stripe" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="9" height="18" fill="var(--c)"/><rect x="9" width="9" height="18" fill="var(--c2)"/></pattern><pattern id="check" width="24" height="24" patternUnits="userSpaceOnUse"><rect width="24" height="24" fill="var(--c)"/><path d="M0 0h12v12H0zM12 12h12v12H12z" fill="var(--c2)"/></pattern><pattern id="wave" width="28" height="20" patternUnits="userSpaceOnUse"><rect width="28" height="20" fill="var(--c)"/><path d="M-7 10 Q0 0 7 10 T21 10 T35 10" fill="none" stroke="var(--c2)" stroke-width="5"/></pattern></defs>`}
 function render(){
   const svg=document.getElementById('suitSvg');let out=patternDefs();
-  for(const view of ['front','back']) for(const [zone,d] of Object.entries(paths[state.model][view])){const cfg=state.zones[zone];const fill=cfg.pattern==='solid'?cfg.color:`url(#${cfg.pattern}-${zone})`;if(cfg.pattern!=='solid')out+=`<pattern id="${cfg.pattern}-${zone}" href="#${cfg.pattern}" style="--c:${cfg.color}"/>`;out+=`<path class="suit-panel ${state.active===zone?'selected':''}" data-zone="${zone}" d="${d}" fill="${fill}"/>`;}
+  for(const view of ['front','back']) for(const [zone,d] of Object.entries(paths[state.model][view])){const cfg=state.zones[zone];const fill=cfg.pattern==='solid'?cfg.color:`url(#${cfg.pattern}-${zone})`;if(cfg.pattern!=='solid')out+=`<pattern id="${cfg.pattern}-${zone}" href="#${cfg.pattern}" style="--c:${cfg.color};--c2:${cfg.color2}"/>`;out+=`<path class="suit-panel ${state.active===zone?'selected':''}" data-zone="${zone}" d="${d}" fill="${fill}"/>`;}
   if(state.model==='classic') out+=`<path class="reference-seams" d="M232 84 Q260 96 288 84 M253 142 L305 165 M331 119 L317 169 M532 84 Q560 96 588 84 M560 145 L618 169 M628 121 L618 169 M188 647 L224 647 M296 647 L332 647 M488 647 L524 647 M596 647 L632 647"/><path class="chest-mark" d="M257 181h2 M265 183h2 M557 181h2 M565 183h2"/>`;
   if(state.model==='flow') out+=`<path class="front-zip" d="M260 143 L260 355"/><path class="back-leg-seam" d="M560 398 L560 630"/><path class="zip-pull" d="M254 157h12v18h-12z"/>`;
   svg.innerHTML=out;document.getElementById('styleCode').textContent=`WL—0${models.findIndex(m=>m.id===state.model)+1}`;
@@ -64,9 +68,10 @@ function render(){
 function snapshot(){history.push(JSON.stringify(state));if(history.length>30)history.shift()}
 function selectZone(z){state.active=z;state.pattern=state.zones[z].pattern;refreshSelection();syncInputs();render()}
 function setColor(c){if(!/^#[0-9a-f]{6}$/i.test(c))return;snapshot();state.zones[state.active].color=c.toUpperCase();syncInputs();render()}
-function setPattern(p){snapshot();state.pattern=p;state.zones[state.active].pattern=p;refreshSelection();render()}
+function setColor2(c){if(!/^#[0-9a-f]{6}$/i.test(c))return;snapshot();state.zones[state.active].color2=c.toUpperCase();syncInputs();render()}
+function setPattern(p){snapshot();state.pattern=p;state.zones[state.active].pattern=p;syncInputs();render()}
 function refreshSelection(){document.querySelectorAll('[data-zone]').forEach(e=>e.classList.toggle('active',e.dataset.zone===state.active));document.querySelectorAll('[data-pattern]').forEach(e=>e.classList.toggle('active',e.dataset.pattern===state.pattern));document.querySelectorAll('[data-model]').forEach(e=>e.classList.toggle('active',e.dataset.model===state.model))}
-function syncInputs(){const c=state.zones[state.active].color;document.getElementById('colorInput').value=c;document.getElementById('hexInput').value=c;refreshSelection()}
+function syncInputs(){const cfg=state.zones[state.active];document.getElementById('colorInput').value=cfg.color;document.getElementById('hexInput').value=cfg.color;document.getElementById('color2Input').value=cfg.color2;document.getElementById('hex2Input').value=cfg.color2;document.getElementById('secondaryColorControls').classList.toggle('is-disabled',cfg.pattern==='solid');refreshSelection()}
 function save(){localStorage.setItem('wetsuit-lab-state',JSON.stringify(state))}
 function bind(){
   document.querySelectorAll('[data-model]').forEach(b=>b.onclick=()=>{snapshot();state.model=b.dataset.model;refreshSelection();render()});
@@ -75,10 +80,12 @@ function bind(){
   document.querySelectorAll('.pattern').forEach(b=>b.onclick=()=>setPattern(b.dataset.pattern));
   document.getElementById('colorInput').oninput=e=>setColor(e.target.value);
   document.getElementById('hexInput').onchange=e=>setColor(e.target.value);
+  document.getElementById('color2Input').oninput=e=>setColor2(e.target.value);
+  document.getElementById('hex2Input').onchange=e=>setColor2(e.target.value);
   document.querySelectorAll('.preset').forEach(b=>b.onclick=()=>{snapshot();const p=presets[+b.dataset.preset];Object.keys(zoneNames).forEach((z,i)=>{state.zones[z].color=p[i];state.zones[z].pattern='solid'});state.pattern='solid';syncInputs();render()});
   document.getElementById('undoBtn').onclick=()=>{if(history.length){state=JSON.parse(history.pop());init()}};
   document.getElementById('randomBtn').onclick=()=>{snapshot();Object.keys(zoneNames).forEach(z=>{state.zones[z].color=palette[Math.floor(Math.random()*palette.length)];state.zones[z].pattern=['solid','solid','stripe','check','wave'][Math.floor(Math.random()*5)]});syncInputs();render()};
-  document.getElementById('resetBtn').onclick=()=>{snapshot();Object.keys(defaultColors).forEach(z=>state.zones[z]={color:defaultColors[z],pattern:'solid'});state.model='classic';state.active='chest';state.pattern='solid';init()};
+  document.getElementById('resetBtn').onclick=()=>{snapshot();Object.keys(defaultColors).forEach(z=>state.zones[z]={color:defaultColors[z],color2:'#111111',pattern:'solid'});state.model='classic';state.active='chest';state.pattern='solid';init()};
   document.getElementById('exportBtn').onclick=exportPng;
 }
 function exportPng(){const svg=document.getElementById('suitSvg');const clone=svg.cloneNode(true);clone.setAttribute('width','1640');clone.setAttribute('height','1440');const data=new XMLSerializer().serializeToString(clone);const blob=new Blob([data],{type:'image/svg+xml'});const url=URL.createObjectURL(blob);const img=new Image();img.onload=()=>{const canvas=document.createElement('canvas');canvas.width=1640;canvas.height=1440;const ctx=canvas.getContext('2d');ctx.fillStyle='#f8f7f1';ctx.fillRect(0,0,1640,1440);ctx.drawImage(img,0,0);URL.revokeObjectURL(url);const a=document.createElement('a');a.download=`wetsuit-lab-${state.model}.png`;a.href=canvas.toDataURL('image/png');a.click()};img.src=url}

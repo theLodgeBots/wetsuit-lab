@@ -1,4 +1,7 @@
 .model-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.color-label { display: block; margin: 0 0 6px; font: 500 9px DM Mono, monospace; letter-spacing: .1em; color: var(--muted); }
+#secondaryColorControls { transition: opacity .2s; }
+#secondaryColorControls.is-disabled { opacity: .38; pointer-events: none; }
 
 @media (max-width: 600px) {
   body { overflow-x: hidden; }
@@ -9,6 +12,23 @@
   .app-shell, .workspace { width: 100%; }
   .controls { min-width: 0; }
   .control-section { padding: 20px 16px; }
+  .workspace { min-height: 0; }
+  .zone-button, .model-card, .pattern, .swatch { min-height: 44px; }
+  .zone-picker { grid-template-columns: 1fr 1fr; }
+  .swatches { grid-template-columns: repeat(8, minmax(36px, 1fr)); overflow-x: auto; padding: 2px; }
+  .stage, .stage svg { min-height: 430px; }
+  .stage-tip { bottom: 8px; font-size: 9px; }
+  .preset-bar { padding: 14px 16px; }
+  footer { gap: 16px; font-size: 8px; }
   .model-card { min-width: 0; }
   .color-row { grid-template-columns: 51px minmax(0, 1fr); }
+}
+
+@media (max-width: 390px) {
+  .topbar { height: 64px; }
+  .brand span:last-child { display: none; }
+  .intro h1 { font-size: 48px; }
+  .app-shell { padding-left: 10px; padding-right: 10px; }
+  .control-section { padding-left: 12px; padding-right: 12px; }
+  .stage, .stage svg { min-height: 390px; }
 }
