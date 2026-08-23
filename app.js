@@ -212,12 +212,15 @@ function updateSharkPreview(){
   const depth=+document.getElementById('sharkDepth').value;
   const distance=+document.getElementById('sharkDistance').value;
   const waterProfiles={clear:[.14,.65,.21],coastal:[.21,.69,.10],turbid:[.31,.62,.07],surf:[.20,.68,.12],low:[.10,.60,.30]};
-  const speciesProfiles={white:[.14,.71,.15],bull:[.20,.73,.07]};
-  const speciesNames={white:'GREAT WHITE',bull:'BULL SHARK'};
+  // Qualitative screen-RGB approximations, not calibrated receptor catches. White/tiger
+  // use their reported single opsin class; bull uses directly measured pigment peaks.
+  const speciesProfiles={white:[.20,.70,.10],bull:[.22,.73,.05],tiger:[.12,.76,.12]};
+  const speciesNames={white:'GREAT WHITE',bull:'BULL SHARK',tiger:'TIGER SHARK'};
+  const speciesBlur={white:.85,bull:1.12,tiger:.95};
   const names={clear:'CLEAR BLUE',coastal:'GREEN COASTAL',turbid:'TURBID / ESTUARY',surf:'SURF / BACKLIT',low:'LOW LIGHT'};
   const w=waterProfiles[water].map((value,index)=>value*speciesProfiles[species][index]);const total=w.reduce((a,b)=>a+b,0);w.forEach((value,index)=>w[index]=value/total);
   const slope=Math.max(.42,1.12-depth*.012-distance*.012),intercept=(1-slope)/2;
-  const viewWidth=source.viewBox.baseVal.width||820,blur=(distance-1)*viewWidth/2500*.75+depth*viewWidth/2500*.08;
+  const viewWidth=source.viewBox.baseVal.width||820,blur=((distance-1)*viewWidth/2500*.75+depth*viewWidth/2500*.08)*speciesBlur[species];
   const clone=source.cloneNode(true);clone.removeAttribute('id');clone.querySelectorAll('.selected').forEach(el=>el.classList.remove('selected'));
   const ns='http://www.w3.org/2000/svg',defs=clone.querySelector('defs')||clone.insertBefore(document.createElementNS(ns,'defs'),clone.firstChild);
   const filter=document.createElementNS(ns,'filter');filter.id='shark-perception-filter';filter.setAttribute('x','-10%');filter.setAttribute('y','-10%');filter.setAttribute('width','120%');filter.setAttribute('height','120%');
