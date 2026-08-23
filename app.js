@@ -66,12 +66,18 @@ function render(){
   document.querySelectorAll('.suit-panel').forEach(p=>p.onclick=()=>selectZone(p.dataset.zone));save();
 }
 function snapshot(){history.push(JSON.stringify(state));if(history.length>30)history.shift()}
-function selectZone(z){state.active=z;state.pattern=state.zones[z].pattern;refreshSelection();syncInputs();render()}
-function setColor(c){if(!/^#[0-9a-f]{6}$/i.test(c))return;snapshot();state.zones[state.active].color=c.toUpperCase();syncInputs();render()}
-function setColor2(c){if(!/^#[0-9a-f]{6}$/i.test(c))return;snapshot();state.zones[state.active].color2=c.toUpperCase();syncInputs();render()}
-function setPattern(p){snapshot();state.pattern=p;state.zones[state.active].pattern=p;syncInputs();render()}
+function selectZone(z){state.active=state.active===z?null:z;state.pattern=state.active?state.zones[state.active].pattern:null;syncInputs();render()}
+function setColor(c){if(!state.active||!/^#[0-9a-f]{6}$/i.test(c))return;snapshot();state.zones[state.active].color=c.toUpperCase();syncInputs();render()}
+function setColor2(c){if(!state.active||!/^#[0-9a-f]{6}$/i.test(c))return;snapshot();state.zones[state.active].color2=c.toUpperCase();syncInputs();render()}
+function setPattern(p){if(!state.active)return;snapshot();state.pattern=p;state.zones[state.active].pattern=p;syncInputs();render()}
 function refreshSelection(){document.querySelectorAll('[data-zone]').forEach(e=>e.classList.toggle('active',e.dataset.zone===state.active));document.querySelectorAll('[data-pattern]').forEach(e=>e.classList.toggle('active',e.dataset.pattern===state.pattern));document.querySelectorAll('[data-model]').forEach(e=>e.classList.toggle('active',e.dataset.model===state.model))}
-function syncInputs(){const cfg=state.zones[state.active];document.getElementById('colorInput').value=cfg.color;document.getElementById('hexInput').value=cfg.color;document.getElementById('color2Input').value=cfg.color2;document.getElementById('hex2Input').value=cfg.color2;document.getElementById('secondaryColorControls').classList.toggle('is-disabled',cfg.pattern==='solid');refreshSelection()}
+function syncInputs(){
+  const cfg=state.active?state.zones[state.active]:null;
+  document.querySelectorAll('#colorInput,#hexInput,#color2Input,#hex2Input,.swatch,.pattern').forEach(el=>el.disabled=!cfg);
+  if(cfg){document.getElementById('colorInput').value=cfg.color;document.getElementById('hexInput').value=cfg.color;document.getElementById('color2Input').value=cfg.color2;document.getElementById('hex2Input').value=cfg.color2}
+  document.getElementById('secondaryColorControls').classList.toggle('is-disabled',!cfg||cfg.pattern==='solid');
+  refreshSelection();
+}
 function save(){localStorage.setItem('wetsuit-lab-state',JSON.stringify(state))}
 function bind(){
   document.querySelectorAll('[data-model]').forEach(b=>b.onclick=()=>{snapshot();state.model=b.dataset.model;refreshSelection();render()});

@@ -34,3 +34,4 @@
   .control-section { padding-left: 12px; padding-right: 12px; }
   .stage, .stage svg { min-height: 390px; }
 }
+button:disabled,input:disabled { cursor: not-allowed; opacity: .42; }
