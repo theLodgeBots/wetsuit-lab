@@ -6,7 +6,8 @@ const models=[
   {id:'flow',name:'ZIP FULL',icon:'↟',description:'Front zip with curved torso panels'}
 ];
 const presets=[['#111111','#f4ff58','#f4ff58','#111111','#111111','#111111','#111111','#f4ff58'],['#23364d','#ff5a36','#f1ead7','#23364d','#13c9c3','#23364d','#111111','#ff5a36'],['#7c5cff','#ff4f9a','#ffb800','#7c5cff','#ff4f9a','#111111','#111111','#f4ff58'],['#f1ead7','#111111','#f1ead7','#111111','#111111','#f1ead7','#111111','#9a174c'],['#13c9c3','#1473e6','#b8ffdf','#23364d','#1473e6','#23364d','#111111','#f4ff58']];
-const defaultColors={body:'#111111',chest:'#f4ff58',shoulders:'#111111',arms:'#111111',sides:'#111111',legs:'#111111',knees:'#1d1e1c',accent:'#f4ff58'};
+const defaultColors={body:'#111111',chest:'#f4ff58',shoulders:'#7c5cff',arms:'#13c9c3',sides:'#ff5a36',legs:'#23364d',knees:'#1d1e1c',accent:'#ff4f9a'};
+const seamColor='#151614';
 let state=JSON.parse(localStorage.getItem('wetsuit-lab-state'))||{model:'classic',active:'chest',pattern:'solid',zones:Object.fromEntries(Object.keys(defaultColors).map(k=>[k,{color:defaultColors[k],color2:'#111111',pattern:'solid'}]))};
 Object.keys(defaultColors).forEach(k=>{
   if(!state.zones[k]) state.zones[k]={color:defaultColors[k],color2:'#111111',pattern:'solid'};
@@ -130,12 +131,19 @@ function classifyReferencePanel(path){
   if(y<815&&b.height<175)return'knees';
   return'legs';
 }
+function defaultReferenceConfig(path,index){
+  const b=path.getBBox();
+  const isThin=Math.min(b.width,b.height)<9||b.width*b.height<900;
+  if(isThin)return{color:seamColor,color2:'#111111',pattern:'solid',detail:true};
+  const zone=classifyReferencePanel(path);
+  return{color:defaultColors[zone],color2:'#111111',pattern:'solid'};
+}
 function decorateClassicReference(svg){
   svg.querySelectorAll('.classic-reference path').forEach((path,index)=>{
     const zone=classifyReferencePanel(path),key=`p${index}`;
-    if(!state.referencePanels[key])state.referencePanels[key]={...state.zones[zone]};
+    if(!state.referencePanels[key])state.referencePanels[key]=defaultReferenceConfig(path,index);
     const cfg=state.referencePanels[key],activeKey=`ref:${index}`;
-    path.classList.add('suit-panel','reference-panel');
+    path.classList.add('suit-panel','reference-panel',cfg.detail?'seam-detail':'fabric-panel');
     if(state.active===activeKey)path.classList.add('selected');
     path.dataset.panel=key;
     const fill=cfg.pattern==='solid'?cfg.color:`url(#${cfg.pattern}-ref-${key})`;
