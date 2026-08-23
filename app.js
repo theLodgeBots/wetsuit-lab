@@ -37,6 +37,7 @@ function patternDefs(){return `<defs><pattern id="stripe" width="18" height="18"
 function render(){
   const svg=document.getElementById('suitSvg');let out=patternDefs();
   for(const view of ['front','back']) for(const [zone,d] of Object.entries(paths[state.model][view])){const cfg=state.zones[zone];const fill=cfg.pattern==='solid'?cfg.color:`url(#${cfg.pattern}-${zone})`;if(cfg.pattern!=='solid')out+=`<pattern id="${cfg.pattern}-${zone}" href="#${cfg.pattern}" style="--c:${cfg.color}"/>`;out+=`<path class="suit-panel ${state.active===zone?'selected':''}" data-zone="${zone}" d="${d}" fill="${fill}"/>`;}
+  if(state.model==='classic') out+=`<path class="reference-seams" d="M153 255 L169 268 M148 302 L161 310 M367 268 L383 255 M359 310 L372 302 M184 600 L226 605 M294 605 L336 600 M484 600 L526 605 M594 605 L636 600"/><path class="chest-mark" d="M246 190h28"/>`;
   if(state.model==='flow') out+=`<path class="front-zip" d="M260 143 L260 355"/><path class="back-leg-seam" d="M560 398 L560 630"/><path class="zip-pull" d="M254 157h12v18h-12z"/>`;
   svg.innerHTML=out;document.getElementById('styleCode').textContent=`WL—0${models.findIndex(m=>m.id===state.model)+1}`;
   document.querySelectorAll('.zone-dot').forEach((d,i)=>d.style.background=state.zones[Object.keys(zoneNames)[i]].color);
