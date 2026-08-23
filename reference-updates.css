@@ -1,0 +1,19 @@
+.construction-detail {
+  fill: none;
+  stroke: #111;
+  stroke-width: 4;
+  pointer-events: none;
+}
+
+.zip-pull {
+  fill: #111;
+  stroke: #f4ff58;
+  stroke-width: 2;
+  pointer-events: none;
+}
+
+.model-name {
+  display: block;
+  font-size: 8px;
+  line-height: 1.25;
+}
