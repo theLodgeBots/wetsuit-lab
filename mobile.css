@@ -1,0 +1,14 @@
+.model-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+@media (max-width: 600px) {
+  body { overflow-x: hidden; }
+  .topbar { padding: 0 14px; }
+  .topbar .button-dark { padding: 0 12px; font-size: 10px; }
+  .topbar .button-dark span { display: none; }
+  .brand { font-size: 14px; }
+  .app-shell, .workspace { width: 100%; }
+  .controls { min-width: 0; }
+  .control-section { padding: 20px 16px; }
+  .model-card { min-width: 0; }
+  .color-row { grid-template-columns: 51px minmax(0, 1fr); }
+}

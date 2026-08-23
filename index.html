@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f4ff58" />
+  <meta name="description" content="Build a one-of-one wetsuit colorway with interactive panels and patterns." />
+  <title>Wetsuit Lab — Design Your Colorway</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="mobile.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#"><span class="brand-mark">W</span><span>WETSUIT LAB</span></a>
+    <div class="top-actions">
+      <button class="button button-ghost" id="resetBtn">Reset</button>
+      <button class="button button-dark" id="exportBtn">Export PNG <span>↗</span></button>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <section class="intro">
+      <div><p class="eyebrow">01 / COLORWAY BUILDER</p><h1>MAKE SOME<br><em>NOISE.</em></h1></div>
+      <p class="intro-copy">Pick a seam map, select a zone, and give every panel its own attitude. Your design saves automatically.</p>
+    </section>
+
+    <section class="workspace">
+      <aside class="controls">
+        <div class="control-section">
+          <div class="section-heading"><span>SEAM MAP</span><span>01</span></div>
+          <div class="model-grid" id="modelGrid"></div>
+        </div>
+        <div class="control-section">
+          <div class="section-heading"><span>ACTIVE ZONE</span><span>02</span></div>
+          <div class="zone-picker" id="zonePicker"></div>
+        </div>
+        <div class="control-section">
+          <div class="section-heading"><span>COLOR</span><span>03</span></div>
+          <div class="color-row"><input type="color" id="colorInput" value="#f4ff58"><input type="text" id="hexInput" value="#F4FF58" maxlength="7"></div>
+          <div class="swatches" id="swatches"></div>
+        </div>
+        <div class="control-section">
+          <div class="section-heading"><span>PATTERN</span><span>04</span></div>
+          <div class="pattern-grid" id="patternGrid"></div>
+        </div>
+        <div class="utility-row">
+          <button class="text-button" id="undoBtn">↶ Undo</button>
+          <button class="text-button" id="randomBtn">✦ Surprise me</button>
+        </div>
+      </aside>
+
+      <section class="stage-wrap">
+        <div class="stage-meta"><span>LIVE PREVIEW</span><span id="styleCode">WL—01</span></div>
+        <div class="stage" id="stage">
+          <div class="view-label front-label">FRONT</div><div class="view-label back-label">BACK</div>
+          <svg id="suitSvg" viewBox="0 0 820 720" role="img" aria-label="Interactive front and back wetsuit design preview"></svg>
+          <div class="stage-tip">CLICK ANY PANEL TO EDIT</div>
+        </div>
+        <div class="preset-bar"><span class="preset-label">QUICK START</span><div id="presetList" class="preset-list"></div></div>
+      </section>
+    </section>
+  </main>
+  <footer><span>BUILT FOR BOLD WATER</span><span>WETSUIT LAB © 2026</span></footer>
+  <script src="app.js"></script>
+</body>
+</html>
