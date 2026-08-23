@@ -60,3 +60,17 @@
 .left-label { left: 22%; }
 .center-label { left: 50%; transform: translateX(-50%); }
 .right-label { right: 22%; }
+
+.seam-panel-status {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 62px;
+  padding: 12px;
+  border: 1px solid #111;
+  background: #fff;
+}
+
+.seam-panel-status strong { font: 600 11px "DM Mono", monospace; }
+.seam-panel-status span { color: #6d6e67; font-size: 11px; line-height: 1.45; }

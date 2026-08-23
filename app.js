@@ -12,6 +12,7 @@ Object.keys(defaultColors).forEach(k=>{
   if(!state.zones[k]) state.zones[k]={color:defaultColors[k],color2:'#111111',pattern:'solid'};
   if(!state.zones[k].color2) state.zones[k].color2='#111111';
 });
+if(!state.referencePanels)state.referencePanels={};
 let history=[];
 let classicReference=null;
 
@@ -50,12 +51,22 @@ const paths={
 
 function init(){
   document.getElementById('modelGrid').innerHTML=models.map(m=>`<button class="model-card ${state.model===m.id?'active':''}" data-model="${m.id}" title="${m.description}" aria-label="${m.name}: ${m.description}"><span class="model-thumb">${m.icon}</span><span class="model-name">${m.name}</span></button>`).join('');
-  document.getElementById('zonePicker').innerHTML=Object.keys(zoneNames).map(z=>`<button class="zone-button ${state.active===z?'active':''}" data-zone="${z}"><i class="zone-dot" style="background:${state.zones[z].color}"></i>${zoneNames[z]}</button>`).join('');
+  updateZonePicker();
   document.getElementById('swatches').innerHTML=palette.map(c=>`<button class="swatch" style="background:${c}" data-color="${c}" aria-label="Use ${c}"></button>`).join('');
   document.getElementById('patternGrid').innerHTML=['solid','stripe','check','wave'].map((p,i)=>`<button class="pattern ${state.pattern===p?'active':''}" data-pattern="${p}" aria-label="${p} pattern" title="${p}"></button>`).join('');
   document.getElementById('presetList').innerHTML=presets.map((p,i)=>`<button class="preset" data-preset="${i}" aria-label="Apply preset ${i+1}">${p.slice(0,5).map(c=>`<i style="background:${c}"></i>`).join('')}</button>`).join('');
   bind();render();syncInputs();
   if(!classicReference) loadClassicReference();
+}
+function updateZonePicker(){
+  const picker=document.getElementById('zonePicker');
+  if(state.model==='classic'){
+    const selected=state.active?.startsWith('ref:')?Number(state.active.slice(4))+1:null;
+    picker.innerHTML=`<div class="seam-panel-status"><strong>${selected?`SEAM PANEL ${String(selected).padStart(2,'0')}`:'NO PANEL SELECTED'}</strong><span>${selected?'Tap it again to deselect.':'Tap any enclosed suit panel.'}</span></div>`;
+    return;
+  }
+  picker.innerHTML=Object.keys(zoneNames).map(z=>`<button class="zone-button ${state.active===z?'active':''}" data-zone="${z}"><i class="zone-dot" style="background:${state.zones[z].color}"></i>${zoneNames[z]}</button>`).join('');
+  picker.querySelectorAll('.zone-button').forEach(b=>b.onclick=()=>selectZone(b.dataset.zone));
 }
 async function loadClassicReference(){
   try{
@@ -66,13 +77,14 @@ async function loadClassicReference(){
   }catch(error){console.error('Unable to load supplied wetsuit reference',error)}
 }
 function patternDefs(){return `<defs><pattern id="stripe" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="9" height="18" fill="var(--c)"/><rect x="9" width="9" height="18" fill="var(--c2)"/></pattern><pattern id="check" width="24" height="24" patternUnits="userSpaceOnUse"><rect width="24" height="24" fill="var(--c)"/><path d="M0 0h12v12H0zM12 12h12v12H12z" fill="var(--c2)"/></pattern><pattern id="wave" width="28" height="20" patternUnits="userSpaceOnUse"><rect width="28" height="20" fill="var(--c)"/><path d="M-7 10 Q0 0 7 10 T21 10 T35 10" fill="none" stroke="var(--c2)" stroke-width="5"/></pattern></defs>`}
-function zonePatternInstances(){return Object.entries(state.zones).map(([zone,cfg])=>cfg.pattern==='solid'?'':`<pattern id="${cfg.pattern}-${zone}" href="#${cfg.pattern}" style="--c:${cfg.color};--c2:${cfg.color2}"/>`).join('')}
+function zonePatternInstances(){return [...Object.entries(state.zones),...Object.entries(state.referencePanels).map(([key,cfg])=>[`ref-${key}`,cfg])].map(([zone,cfg])=>cfg.pattern==='solid'?'':`<pattern id="${cfg.pattern}-${zone}" href="#${cfg.pattern}" style="--c:${cfg.color};--c2:${cfg.color2}"/>`).join('')}
 function render(){
   const svg=document.getElementById('suitSvg');let out=patternDefs();
   document.getElementById('stage').classList.toggle('three-view',state.model==='classic');
   document.querySelector('.left-label').textContent=state.model==='classic'?'SIDE':'FRONT';
   document.querySelector('.center-label').hidden=state.model!=='classic';
   document.querySelector('.right-label').textContent=state.model==='classic'?'SIDE':'BACK';
+  updateZonePicker();
   if(state.model==='classic'&&classicReference){
     svg.setAttribute('viewBox','0 0 2481 3508');
     svg.innerHTML=out.replace('</defs>',zonePatternInstances()+'</defs>')+`<g class="classic-reference">${classicReference}</g>`;
@@ -102,24 +114,28 @@ function classifyReferencePanel(path){
   return'legs';
 }
 function decorateClassicReference(svg){
-  svg.querySelectorAll('.classic-reference path').forEach(path=>{
-    const zone=classifyReferencePanel(path),cfg=state.zones[zone];
+  svg.querySelectorAll('.classic-reference path').forEach((path,index)=>{
+    const zone=classifyReferencePanel(path),key=`p${index}`;
+    if(!state.referencePanels[key])state.referencePanels[key]={...state.zones[zone]};
+    const cfg=state.referencePanels[key],activeKey=`ref:${index}`;
     path.classList.add('suit-panel','reference-panel');
-    if(state.active===zone)path.classList.add('selected');
-    path.dataset.zone=zone;
-    const fill=cfg.pattern==='solid'?cfg.color:`url(#${cfg.pattern}-${zone})`;
+    if(state.active===activeKey)path.classList.add('selected');
+    path.dataset.panel=key;
+    const fill=cfg.pattern==='solid'?cfg.color:`url(#${cfg.pattern}-ref-${key})`;
     path.style.setProperty('fill',fill,'important');
-    path.onclick=()=>selectZone(zone);
+    path.onclick=()=>selectReferencePanel(index);
   });
 }
 function snapshot(){history.push(JSON.stringify(state));if(history.length>30)history.shift()}
 function selectZone(z){state.active=state.active===z?null:z;state.pattern=state.active?state.zones[state.active].pattern:null;syncInputs();render()}
-function setColor(c){if(!state.active||!/^#[0-9a-f]{6}$/i.test(c))return;snapshot();state.zones[state.active].color=c.toUpperCase();syncInputs();render()}
-function setColor2(c){if(!state.active||!/^#[0-9a-f]{6}$/i.test(c))return;snapshot();state.zones[state.active].color2=c.toUpperCase();syncInputs();render()}
-function setPattern(p){if(!state.active)return;snapshot();state.pattern=p;state.zones[state.active].pattern=p;syncInputs();render()}
+function selectReferencePanel(index){const key=`ref:${index}`;state.active=state.active===key?null:key;state.pattern=activeConfig()?.pattern||null;syncInputs();render()}
+function activeConfig(){if(!state.active)return null;if(state.active.startsWith('ref:'))return state.referencePanels[`p${state.active.slice(4)}`]||null;return state.zones[state.active]||null}
+function setColor(c){const cfg=activeConfig();if(!cfg||!/^#[0-9a-f]{6}$/i.test(c))return;snapshot();cfg.color=c.toUpperCase();syncInputs();render()}
+function setColor2(c){const cfg=activeConfig();if(!cfg||!/^#[0-9a-f]{6}$/i.test(c))return;snapshot();cfg.color2=c.toUpperCase();syncInputs();render()}
+function setPattern(p){const cfg=activeConfig();if(!cfg)return;snapshot();state.pattern=p;cfg.pattern=p;syncInputs();render()}
 function refreshSelection(){document.querySelectorAll('[data-zone]').forEach(e=>e.classList.toggle('active',e.dataset.zone===state.active));document.querySelectorAll('[data-pattern]').forEach(e=>e.classList.toggle('active',e.dataset.pattern===state.pattern));document.querySelectorAll('[data-model]').forEach(e=>e.classList.toggle('active',e.dataset.model===state.model))}
 function syncInputs(){
-  const cfg=state.active?state.zones[state.active]:null;
+  const cfg=activeConfig();
   document.querySelectorAll('#colorInput,#hexInput,#color2Input,#hex2Input,.swatch,.pattern').forEach(el=>el.disabled=!cfg);
   if(cfg){document.getElementById('colorInput').value=cfg.color;document.getElementById('hexInput').value=cfg.color;document.getElementById('color2Input').value=cfg.color2;document.getElementById('hex2Input').value=cfg.color2}
   document.getElementById('secondaryColorControls').classList.toggle('is-disabled',!cfg||cfg.pattern==='solid');
@@ -135,10 +151,10 @@ function bind(){
   document.getElementById('hexInput').onchange=e=>setColor(e.target.value);
   document.getElementById('color2Input').oninput=e=>setColor2(e.target.value);
   document.getElementById('hex2Input').onchange=e=>setColor2(e.target.value);
-  document.querySelectorAll('.preset').forEach(b=>b.onclick=()=>{snapshot();const p=presets[+b.dataset.preset];Object.keys(zoneNames).forEach((z,i)=>{state.zones[z].color=p[i];state.zones[z].pattern='solid'});state.pattern='solid';syncInputs();render()});
+  document.querySelectorAll('.preset').forEach(b=>b.onclick=()=>{snapshot();const p=presets[+b.dataset.preset];Object.keys(zoneNames).forEach((z,i)=>{state.zones[z].color=p[i];state.zones[z].pattern='solid'});state.referencePanels={};state.active=state.model==='classic'?null:state.active;state.pattern=state.active?'solid':null;syncInputs();render()});
   document.getElementById('undoBtn').onclick=()=>{if(history.length){state=JSON.parse(history.pop());init()}};
-  document.getElementById('randomBtn').onclick=()=>{snapshot();Object.keys(zoneNames).forEach(z=>{state.zones[z].color=palette[Math.floor(Math.random()*palette.length)];state.zones[z].pattern=['solid','solid','stripe','check','wave'][Math.floor(Math.random()*5)]});syncInputs();render()};
-  document.getElementById('resetBtn').onclick=()=>{snapshot();Object.keys(defaultColors).forEach(z=>state.zones[z]={color:defaultColors[z],color2:'#111111',pattern:'solid'});state.model='classic';state.active='chest';state.pattern='solid';init()};
+  document.getElementById('randomBtn').onclick=()=>{snapshot();const targets=state.model==='classic'?Object.values(state.referencePanels):Object.values(state.zones);targets.forEach(cfg=>{cfg.color=palette[Math.floor(Math.random()*palette.length)];cfg.color2=palette[Math.floor(Math.random()*palette.length)];cfg.pattern=['solid','solid','stripe','check','wave'][Math.floor(Math.random()*5)]});syncInputs();render()};
+  document.getElementById('resetBtn').onclick=()=>{snapshot();Object.keys(defaultColors).forEach(z=>state.zones[z]={color:defaultColors[z],color2:'#111111',pattern:'solid'});state.referencePanels={};state.model='classic';state.active=null;state.pattern=null;init()};
   document.getElementById('exportBtn').onclick=exportPng;
 }
 function exportPng(){const svg=document.getElementById('suitSvg');const clone=svg.cloneNode(true);clone.setAttribute('width','1640');clone.setAttribute('height','1440');const data=new XMLSerializer().serializeToString(clone);const blob=new Blob([data],{type:'image/svg+xml'});const url=URL.createObjectURL(blob);const img=new Image();img.onload=()=>{const canvas=document.createElement('canvas');canvas.width=1640;canvas.height=1440;const ctx=canvas.getContext('2d');ctx.fillStyle='#f8f7f1';ctx.fillRect(0,0,1640,1440);ctx.drawImage(img,0,0);URL.revokeObjectURL(url);const a=document.createElement('a');a.download=`wetsuit-lab-${state.model}.png`;a.href=canvas.toDataURL('image/png');a.click()};img.src=url}
