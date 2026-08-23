@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/shark-vision/research.css">
+  <link rel="stylesheet" href="/shark-vision/palettes.css">
 </head>
 <body>
   <header><a class="mark" href="/" aria-label="Wetsuit Lab home">W</a><span>INTERNAL RESEARCH / 01</span><span>UPDATED 23 AUG 2026</span></header>
@@ -51,8 +52,22 @@
       </div>
     </section>
 
-    <section class="papers ruled">
+    <section class="water-palettes ruled">
       <div class="section-no">03</div>
+      <div><p class="label">WATER-SPECIFIC PALETTES</p><h2>Candidate colors to test.</h2><p class="method-note">Starting hypotheses—not validated deterrent palettes. Hex codes describe screen appearance only; production decisions require wet spectral-reflectance measurements.</p></div>
+      <div class="water-grid">
+        <article><div class="water-head clear"><b>CLEAR BLUE OCEAN</b><span>0–15 M / HIGH SUN</span></div><div class="swatch-line"><i style="--c:#090b0d"></i><i style="--c:#efff32"></i><i style="--c:#f7f4e8"></i><i style="--c:#ff5a36"></i></div><h3>INK × ACID YELLOW-GREEN</h3><p>Blue penetrates well, so blue and cyan fabrics risk merging with the ambient field. Start with near-black against very high-reflectance yellow-green or white. Keep blocks large.</p><small>#090B0D / #EFFF32</small></article>
+        <article><div class="water-head coastal"><b>GREEN COASTAL WATER</b><span>SHALLOW / PHYTOPLANKTON</span></div><div class="swatch-line"><i style="--c:#080907"></i><i style="--c:#ff6a2a"></i><i style="--c:#f5f1dc"></i><i style="--c:#ff4f9a"></i></div><h3>BLACK × FLUORESCENT ORANGE</h3><p>Coastal transmission often shifts toward green. Candidate orange or warm fluorescent panels may separate near the surface, paired with black for luminance structure.</p><small>#080907 / #FF6A2A</small></article>
+        <article><div class="water-head turbid"><b>TURBID / ESTUARY</b><span>SEDIMENT / LOW RANGE</span></div><div class="swatch-line"><i style="--c:#050505"></i><i style="--c:#ffffff"></i><i style="--c:#eaff2f"></i><i style="--c:#ff3d8d"></i></div><h3>BLACK × OPTIC WHITE</h3><p>Suspended material erases fine detail and can narrow the spectrum toward green-yellow. Use robust value extremes and oversized boundaries; treat hue as secondary.</p><small>#050505 / #FFFFFF</small></article>
+        <article><div class="water-head surf"><b>SURF / BACKLIT</b><span>VIEWED FROM BELOW</span></div><div class="swatch-line"><i style="--c:#10110f"></i><i style="--c:#f7f4e8"></i><i style="--c:#efff32"></i><i style="--c:#19c8c4"></i></div><h3>WHITE CORE × DARK BREAKS</h3><p>A person becomes a dark silhouette against downwelling light. Test high-reflectance ventral fields interrupted by dark bands that break limb and torso contours.</p><small>#F7F4E8 / #10110F</small></article>
+        <article><div class="water-head reef"><b>CLEAR TROPICAL / REEF</b><span>BRIGHT / COMPLEX</span></div><div class="swatch-line"><i style="--c:#0a0b0b"></i><i style="--c:#ff4f9a"></i><i style="--c:#efff32"></i><i style="--c:#ffffff"></i></div><h3>BLACK × FLUORESCENT BRIGHTS</h3><p>Against a busy reef, test strong achromatic edges plus fluorescent materials. Fluorescence improved underwater visibility in human trials, but the best hue varied by water.</p><small>#0A0B0B / FLUOR YELLOW</small></article>
+        <article><div class="water-head low"><b>LOW LIGHT / DEPTH</b><span>ROD-DOMINATED</span></div><div class="swatch-line"><i style="--c:#050607"></i><i style="--c:#f6f6ed"></i><i style="--c:#20d5bd"></i><i style="--c:#1f6fe5"></i></div><h3>REFLECTANCE BEFORE HUE</h3><p>Passive color cannot reflect absent light. Start with white–black contrast; evaluate cyan-green fluorescence only with measured excitation. Active light is a separate product class.</p><small>#050607 / #F6F6ED</small></article>
+      </div>
+      <div class="palette-rule"><b>THE ROBUST DEFAULT</b><p>For one system spanning several waters, begin with large near-black and high-reflectance white/yellow-green fields. Add pink, orange, or cyan only after adjacent panels remain far apart in shark-weighted luminance when wet.</p></div>
+    </section>
+
+    <section class="papers ruled">
+      <div class="section-no">04</div>
       <div><p class="label">CORE READING</p><h2>Academic evidence stack.</h2></div>
       <div class="paper-list">
         <a href="https://doi.org/10.1016/j.cub.2024.10.042" target="_blank" rel="noreferrer"><span>2024 / CURRENT BIOLOGY</span><h3>Counterillumination reduces bites by Great White sharks</h3><p>Field experiments with illuminated seal decoys. Shape, motion, and silhouette contrast affected attacks; brighter-than-background lighting was most effective.</p><i>Ryan et al. · DOI 10.1016/j.cub.2024.10.042 ↗</i></a>
@@ -67,7 +82,7 @@
     </section>
 
     <section class="experiments ruled">
-      <div class="section-no">04</div>
+      <div class="section-no">05</div>
       <div><p class="label">RESEARCH ROADMAP</p><h2>From loud idea to defensible claim.</h2></div>
       <ol>
         <li><span>01</span><div><b>SPECTRAL MATERIAL LIBRARY</b><p>Measure neoprene and print reflectance wet and dry. Convert spectra into species-specific cone/rod catches under coastal light fields.</p></div></li>
@@ -78,7 +93,7 @@
     </section>
 
     <section class="people ruled">
-      <div class="section-no">05</div>
+      <div class="section-no">06</div>
       <div><p class="label">POTENTIAL COLLABORATORS</p><h2>Who could make this real.</h2></div>
       <div class="people-grid">
         <a href="https://researchers.mq.edu.au/en/persons/nathan-hart/" target="_blank" rel="noreferrer"><b>NATHAN HART</b><span>Macquarie University</span><p>Comparative sensory biology, shark photoreceptors, visual deterrents. Direct fit for scientific leadership.</p></a>
