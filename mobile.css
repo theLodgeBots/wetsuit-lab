@@ -13,6 +13,8 @@
   .controls { min-width: 0; }
   .control-section { padding: 20px 16px; }
   .workspace { min-height: 0; }
+  .workspace { display: flex; flex-direction: column; }
+  .stage-wrap { order: -1; border-bottom: 1px solid var(--ink); }
   .zone-button, .model-card, .pattern, .swatch { min-height: 44px; }
   .zone-picker { grid-template-columns: 1fr 1fr; }
   .swatches { grid-template-columns: repeat(8, minmax(36px, 1fr)); overflow-x: auto; padding: 2px; }
