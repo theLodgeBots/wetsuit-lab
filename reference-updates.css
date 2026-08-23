@@ -1,8 +1,19 @@
-.construction-detail {
+.construction-detail,
+.front-zip,
+.back-leg-seam {
   fill: none;
   stroke: #111;
   stroke-width: 4;
   pointer-events: none;
+}
+
+.front-zip {
+  stroke-width: 7;
+  stroke-dasharray: 2 2;
+}
+
+.back-leg-seam {
+  stroke-width: 3;
 }
 
 .zip-pull {
