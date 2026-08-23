@@ -15,7 +15,8 @@ Object.keys(defaultColors).forEach(k=>{
 });
 if(!state.referencePanels)state.referencePanels={};
 let history=[];
-let classicReference=null;
+const referenceAssets={classic:'asym-reference.svg',apex:'pattern-2.svg',flow:'pattern-3.svg'};
+const references={};
 let responsiveLayoutBound=false;
 
 const paths={
@@ -58,7 +59,7 @@ function init(){
   document.getElementById('patternGrid').innerHTML=['solid','stripe','check','wave'].map((p,i)=>`<button class="pattern ${state.pattern===p?'active':''}" data-pattern="${p}" aria-label="${p} pattern" title="${p}"></button>`).join('');
   document.getElementById('presetList').innerHTML=presets.map((p,i)=>`<button class="preset" data-preset="${i}" aria-label="Apply preset ${i+1}">${p.slice(0,5).map(c=>`<i style="background:${c}"></i>`).join('')}</button>`).join('');
   bind();render();syncInputs();setupResponsiveLayout();
-  if(!classicReference) loadClassicReference();
+  loadReferences();
 }
 function setupResponsiveLayout(){
   if(responsiveLayoutBound)return;
@@ -72,7 +73,7 @@ function setupResponsiveLayout(){
 }
 function updateZonePicker(){
   const picker=document.getElementById('zonePicker');
-  if(state.model==='classic'){
+  if(references[state.model]){
     const selected=state.active?.startsWith('ref:')?Number(state.active.slice(4))+1:null;
     picker.innerHTML=`<div class="seam-panel-status"><strong>${selected?`SEAM PANEL ${String(selected).padStart(2,'0')}`:'NO PANEL SELECTED'}</strong><span>${selected?'Tap it again to deselect.':'Tap any enclosed suit panel.'}</span></div>`;
     return;
@@ -80,13 +81,16 @@ function updateZonePicker(){
   picker.innerHTML=Object.keys(zoneNames).map(z=>`<button class="zone-button ${state.active===z?'active':''}" data-zone="${z}"><i class="zone-dot" style="background:${state.zones[z].color}"></i>${zoneNames[z]}</button>`).join('');
   picker.querySelectorAll('.zone-button').forEach(b=>b.onclick=()=>selectZone(b.dataset.zone));
 }
-async function loadClassicReference(){
-  try{
-    const source=await fetch('assets/asym-reference.svg').then(r=>{if(!r.ok)throw new Error(`SVG ${r.status}`);return r.text()});
-    const doc=new DOMParser().parseFromString(source,'image/svg+xml');
-    classicReference=doc.querySelector('svg > g')?.outerHTML||null;
-    if(state.model==='classic')render();
-  }catch(error){console.error('Unable to load supplied wetsuit reference',error)}
+async function loadReferences(){
+  await Promise.all(Object.entries(referenceAssets).map(async([model,file])=>{
+    if(references[model])return;
+    try{
+      const source=await fetch(`assets/${file}`).then(r=>{if(!r.ok)throw new Error(`SVG ${r.status}`);return r.text()});
+      const doc=new DOMParser().parseFromString(source,'image/svg+xml');
+      references[model]=doc.querySelector('svg > g')?.outerHTML||null;
+    }catch(error){console.error(`Unable to load supplied ${model} wetsuit reference`,error)}
+  }));
+  render();
 }
 function patternDefs(){return `<defs><pattern id="stripe" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="9" height="18" fill="var(--c)"/><rect x="9" width="9" height="18" fill="var(--c2)"/></pattern><pattern id="check" width="24" height="24" patternUnits="userSpaceOnUse"><rect width="24" height="24" fill="var(--c)"/><path d="M0 0h12v12H0zM12 12h12v12H12z" fill="var(--c2)"/></pattern><pattern id="wave" width="28" height="20" patternUnits="userSpaceOnUse"><rect width="28" height="20" fill="var(--c)"/><path d="M-7 10 Q0 0 7 10 T21 10 T35 10" fill="none" stroke="var(--c2)" stroke-width="5"/></pattern></defs>`}
 function explicitPattern(id,cfg){
@@ -98,16 +102,16 @@ function explicitPattern(id,cfg){
 function zonePatternInstances(){return [...Object.entries(state.zones),...Object.entries(state.referencePanels).map(([key,cfg])=>[`ref-${key}`,cfg])].map(([zone,cfg])=>explicitPattern(`${cfg.pattern}-${zone}`,cfg)).join('')}
 function render(){
   const svg=document.getElementById('suitSvg');let out=patternDefs();
-  document.getElementById('stage').classList.toggle('three-view',state.model==='classic');
-  document.querySelector('.left-label').textContent=state.model==='classic'?'SIDE':'FRONT';
-  document.querySelector('.center-label').hidden=state.model!=='classic';
-  document.querySelector('.right-label').textContent=state.model==='classic'?'SIDE':'BACK';
+  document.getElementById('stage').classList.add('three-view');
+  document.querySelector('.left-label').textContent='SIDE';
+  document.querySelector('.center-label').hidden=false;
+  document.querySelector('.right-label').textContent='BACK';
   updateZonePicker();
-  if(state.model==='classic'&&classicReference){
+  if(references[state.model]){
     svg.setAttribute('viewBox','0 0 2481 3508');
-    svg.innerHTML=out.replace('</defs>',zonePatternInstances()+'</defs>')+`<g class="classic-reference">${classicReference}</g>`;
-    decorateClassicReference(svg);
-    document.getElementById('styleCode').textContent='WL—01';
+    svg.innerHTML=out.replace('</defs>',zonePatternInstances()+'</defs>')+`<g class="classic-reference">${references[state.model]}</g>`;
+    decorateReference(svg);
+    document.getElementById('styleCode').textContent=`WL—0${models.findIndex(m=>m.id===state.model)+1}`;
     document.querySelectorAll('.zone-dot').forEach((d,i)=>d.style.background=state.zones[Object.keys(zoneNames)[i]].color);
     save();
     return;
@@ -138,9 +142,10 @@ function defaultReferenceConfig(path,index){
   const zone=classifyReferencePanel(path);
   return{color:defaultColors[zone],color2:'#111111',pattern:'solid'};
 }
-function decorateClassicReference(svg){
+function panelKey(index){return `${state.model}-p${index}`}
+function decorateReference(svg){
   svg.querySelectorAll('.classic-reference path').forEach((path,index)=>{
-    const zone=classifyReferencePanel(path),key=`p${index}`;
+    const zone=classifyReferencePanel(path),key=panelKey(index);
     if(!state.referencePanels[key])state.referencePanels[key]=defaultReferenceConfig(path,index);
     const cfg=state.referencePanels[key],activeKey=`ref:${index}`;
     path.classList.add('suit-panel','reference-panel',cfg.detail?'seam-detail':'fabric-panel');
@@ -154,7 +159,7 @@ function decorateClassicReference(svg){
 function snapshot(){history.push(JSON.stringify(state));if(history.length>30)history.shift()}
 function selectZone(z){state.active=state.active===z?null:z;state.pattern=state.active?state.zones[state.active].pattern:null;syncInputs();render()}
 function selectReferencePanel(index){const key=`ref:${index}`;state.active=state.active===key?null:key;state.pattern=activeConfig()?.pattern||null;syncInputs();render()}
-function activeConfig(){if(!state.active)return null;if(state.active.startsWith('ref:'))return state.referencePanels[`p${state.active.slice(4)}`]||null;return state.zones[state.active]||null}
+function activeConfig(){if(!state.active)return null;if(state.active.startsWith('ref:'))return state.referencePanels[panelKey(state.active.slice(4))]||null;return state.zones[state.active]||null}
 function setColor(c){const cfg=activeConfig();if(!cfg||!/^#[0-9a-f]{6}$/i.test(c))return;snapshot();cfg.color=c.toUpperCase();syncInputs();render()}
 function setColor2(c){const cfg=activeConfig();if(!cfg||!/^#[0-9a-f]{6}$/i.test(c))return;snapshot();cfg.color2=c.toUpperCase();syncInputs();render()}
 function setPattern(p){const cfg=activeConfig();if(!cfg)return;snapshot();state.pattern=p;cfg.pattern=p;syncInputs();render()}
@@ -168,7 +173,7 @@ function syncInputs(){
 }
 function save(){localStorage.setItem('wetsuit-lab-state',JSON.stringify(state))}
 function bind(){
-  document.querySelectorAll('[data-model]').forEach(b=>b.onclick=()=>{snapshot();state.model=b.dataset.model;refreshSelection();render()});
+  document.querySelectorAll('[data-model]').forEach(b=>b.onclick=()=>{snapshot();state.model=b.dataset.model;state.active=null;state.pattern=null;syncInputs();render()});
   document.querySelectorAll('.zone-button').forEach(b=>b.onclick=()=>selectZone(b.dataset.zone));
   document.querySelectorAll('.swatch').forEach(b=>b.onclick=()=>setColor(b.dataset.color));
   document.querySelectorAll('.pattern').forEach(b=>b.onclick=()=>setPattern(b.dataset.pattern));
@@ -176,9 +181,9 @@ function bind(){
   document.getElementById('hexInput').onchange=e=>setColor(e.target.value);
   document.getElementById('color2Input').oninput=e=>setColor2(e.target.value);
   document.getElementById('hex2Input').onchange=e=>setColor2(e.target.value);
-  document.querySelectorAll('.preset').forEach(b=>b.onclick=()=>{snapshot();const p=presets[+b.dataset.preset];Object.keys(zoneNames).forEach((z,i)=>{state.zones[z].color=p[i];state.zones[z].pattern='solid'});state.referencePanels={};state.active=state.model==='classic'?null:state.active;state.pattern=state.active?'solid':null;syncInputs();render()});
+  document.querySelectorAll('.preset').forEach(b=>b.onclick=()=>{snapshot();const p=presets[+b.dataset.preset];Object.keys(zoneNames).forEach((z,i)=>{state.zones[z].color=p[i];state.zones[z].pattern='solid'});Object.keys(state.referencePanels).filter(k=>k.startsWith(`${state.model}-`)).forEach(k=>delete state.referencePanels[k]);state.active=null;state.pattern=null;syncInputs();render()});
   document.getElementById('undoBtn').onclick=()=>{if(history.length){state=JSON.parse(history.pop());init()}};
-  document.getElementById('randomBtn').onclick=()=>{snapshot();const targets=state.model==='classic'?Object.values(state.referencePanels):Object.values(state.zones);targets.forEach(cfg=>{cfg.color=palette[Math.floor(Math.random()*palette.length)];cfg.color2=palette[Math.floor(Math.random()*palette.length)];cfg.pattern=['solid','solid','stripe','check','wave'][Math.floor(Math.random()*5)]});syncInputs();render()};
+  document.getElementById('randomBtn').onclick=()=>{snapshot();const targets=Object.entries(state.referencePanels).filter(([k])=>k.startsWith(`${state.model}-`)).map(([,v])=>v);targets.forEach(cfg=>{cfg.color=palette[Math.floor(Math.random()*palette.length)];cfg.color2=palette[Math.floor(Math.random()*palette.length)];cfg.pattern=['solid','solid','stripe','check','wave'][Math.floor(Math.random()*5)]});syncInputs();render()};
   document.getElementById('resetBtn').onclick=()=>{snapshot();Object.keys(defaultColors).forEach(z=>state.zones[z]={color:defaultColors[z],color2:'#111111',pattern:'solid'});state.referencePanels={};state.model='classic';state.active=null;state.pattern=null;init()};
   document.getElementById('exportBtn').onclick=exportPng;
 }
