@@ -1,4 +1,4 @@
-.model-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.model-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .color-label { display: block; margin: 0 0 6px; font: 500 9px DM Mono, monospace; letter-spacing: .1em; color: var(--muted); }
 #secondaryColorControls { transition: opacity .2s; }
 #secondaryColorControls.is-disabled { opacity: .38; pointer-events: none; }

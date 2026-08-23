@@ -3,7 +3,8 @@ const palette=['#111111','#f4ff58','#ff4f9a','#ff5a36','#7c5cff','#13c9c3','#147
 const models=[
   {id:'classic',name:'ASYM FULL',icon:'◒',description:'Asymmetric chest and knee panels'},
   {id:'apex',name:'SPRING',icon:'◫',description:'Short sleeve and thigh-length cut'},
-  {id:'flow',name:'ZIP FULL',icon:'↟',description:'Front zip with curved torso panels'}
+  {id:'flow',name:'ZIP FULL',icon:'↟',description:'Front zip with curved torso panels'},
+  {id:'spring',name:'SPRING SUIT',icon:'⌁',description:'Short sleeve and thigh-length spring suit'}
 ];
 const presets=[['#111111','#f4ff58','#f4ff58','#111111','#111111','#111111','#111111','#f4ff58'],['#23364d','#ff5a36','#f1ead7','#23364d','#13c9c3','#23364d','#111111','#ff5a36'],['#7c5cff','#ff4f9a','#ffb800','#7c5cff','#ff4f9a','#111111','#111111','#f4ff58'],['#f1ead7','#111111','#f1ead7','#111111','#111111','#f1ead7','#111111','#9a174c'],['#13c9c3','#1473e6','#b8ffdf','#23364d','#1473e6','#23364d','#111111','#f4ff58']];
 const defaultColors={body:'#111111',chest:'#f4ff58',shoulders:'#7c5cff',arms:'#13c9c3',sides:'#ff5a36',legs:'#23364d',knees:'#1d1e1c',accent:'#ff4f9a'};
@@ -15,7 +16,7 @@ Object.keys(defaultColors).forEach(k=>{
 });
 if(!state.referencePanels)state.referencePanels={};
 let history=[];
-const referenceAssets={classic:'asym-reference.svg',apex:'pattern-2.svg',flow:'pattern-3.svg'};
+const referenceAssets={classic:'asym-reference.svg',apex:'pattern-2.svg',flow:'pattern-3.svg',spring:'pattern-4-spring-suit.svg'};
 const references={};
 let responsiveLayoutBound=false;
 
@@ -107,6 +108,12 @@ function render(){
   document.querySelector('.center-label').hidden=false;
   document.querySelector('.right-label').textContent='BACK';
   updateZonePicker();
+  if(!references[state.model]&&!paths[state.model]){
+    svg.setAttribute('viewBox','0 0 820 720');
+    svg.innerHTML='<text x="410" y="360" text-anchor="middle">LOADING SEAM MAP…</text>';
+    save();
+    return;
+  }
   if(references[state.model]){
     svg.setAttribute('viewBox','0 0 2481 3508');
     svg.innerHTML=out.replace('</defs>',zonePatternInstances()+'</defs>')+`<g class="classic-reference">${references[state.model]}</g>`;
