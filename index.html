@@ -75,10 +75,11 @@
     <div class="shark-sim-grid">
       <div class="shark-canvas" id="sharkCanvas"><div class="shark-water-label" id="sharkWaterLabel">CLEAR BLUE / 5 M / 8 M VIEW</div><div id="sharkSvgMount"></div></div>
       <aside class="shark-controls">
+        <label>SPECIES<select id="sharkSpecies"><option value="white">Great white shark</option><option value="bull">Bull shark</option></select></label>
         <label>WATER TYPE<select id="sharkWater"><option value="clear">Clear blue ocean</option><option value="coastal">Green coastal</option><option value="turbid">Turbid / estuary</option><option value="surf">Surf / backlit</option><option value="low">Low light / depth</option></select></label>
         <label>DEPTH <output id="depthOutput">5 M</output><input id="sharkDepth" type="range" min="0" max="30" value="5" step="1"></label>
         <label>VIEWING DISTANCE <output id="distanceOutput">8 M</output><input id="sharkDistance" type="range" min="1" max="25" value="8" step="1"></label>
-        <div class="shark-legend"><b>WHAT THIS MODELS</b><p>Approximate shark-weighted luminance, water-dependent contrast loss, and reduced spatial detail with distance.</p><b>WHAT IT DOES NOT</b><p>It cannot predict behavior or safety. Accurate simulation requires wet material spectra, local underwater light measurements, species, and viewing geometry.</p></div>
+        <div class="shark-legend"><b>WHAT THIS MODELS</b><p>Estimated species-weighted luminance, water-dependent contrast loss, and reduced spatial detail with distance.</p><b>WHAT IT DOES NOT</b><p>This is not a literal reconstruction of perception and cannot predict behavior or safety. Validation requires wet material spectra and species-specific behavioral trials.</p></div>
       </aside>
     </div>
   </dialog>
