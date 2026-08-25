@@ -74,3 +74,6 @@
 
 .seam-panel-status strong { font: 600 11px "DM Mono", monospace; }
 .seam-panel-status span { color: #6d6e67; font-size: 11px; line-height: 1.45; }
+
+footer a { color: var(--acid); text-decoration: none; }
+footer a:hover { text-decoration: underline; text-underline-offset: 4px; }
